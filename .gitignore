@@ -1,0 +1,26 @@
+# R temporary files
+.Rhistory
+.Rdata
+.RData
+.Ruserdata
+*.Rproj.user/
+.Rproj.user/
+
+# IDE
+.idea/
+
+# Large data files and results
+data
+DEG
+plots
+TCGA_LIHC_SNF_Results_final
+HCC_complete_survival_results
+*.csv
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*~
+*.tmp
