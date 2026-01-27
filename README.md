@@ -139,6 +139,8 @@ BiocManager::install(c("limma", "edgeR", "SNFtool", "clusterProfiler",
 
 ## Data
 
+The input data required to reproduce the analyses is available as a [release archive (v1-data)](https://github.com/ppbevilacqua/hcc-snf-molecular-subtypes/releases/tag/v1-data). Download `data.zip` and extract it into the project root so that the `data/` directory is created with the expected structure. The analysis scripts assume all data files are available in this location and can be executed without further configuration.
+
 The pipeline uses TCGA-LIHC (Liver Hepatocellular Carcinoma) data:
 
 | Data Type | Description | Samples |
