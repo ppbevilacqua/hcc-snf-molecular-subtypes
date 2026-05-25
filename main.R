@@ -43,7 +43,10 @@ common_pz_omics <- filtered_matrix$common_pz_cancer
 # Ensure clinical matrix matches the cancer patients
 cancer_patient_ids <- unique(str_extract(colnames(mRNA_matrix_cancer), PZ_TCGA_REGEX))
 
-final_clinical_matrix <- compute_final_clinical_matrix(common_pz_omics = cancer_patient_ids)
+final_clinical_matrix <- compute_final_clinical_matrix(
+  common_pz_omics    = cancer_patient_ids,
+  cancer_patient_ids = cancer_patient_ids
+)
 
 # Verify all matrices have the same patients in the same order
 stopifnot(identical(
@@ -76,17 +79,24 @@ dist_miRNA <- net_analysis_results$dist_miRNA
 
 ########################### Parameter Grid Search for SNF ###########################
 
-# Define parameter ranges
-K_range <- c(10, 15, 20, 50, 60, 80, 100, 120)
-alpha_range <- seq(0.4, 1.2, by = 0.2)
-T_range <- c(20, 25, 30, 50, 100, 200)
+# Disabled by default: grid search is expensive and the hardcoded values
+# above (K=10, sigma=1, n_clusters=6, iterations=20) already correspond to
+# the optimal parameters from a previous run. Set ENABLE_GRID_SEARCH=TRUE
+# in src/constants.R to re-explore the parameter space.
+if (ENABLE_GRID_SEARCH) {
 
-grid_search_SNF(dir_plots = dirPlots,
-                dist_mRNA,
-                dist_miRNA,
-                K_range,
-                alpha_range,
-                T_range)
+  # Define parameter ranges
+  K_range <- c(10, 15, 20, 50, 60, 80, 100, 120)
+  alpha_range <- seq(0.4, 1.2, by = 0.2)
+  T_range <- c(20, 25, 30, 50, 100, 200)
+
+  grid_search_SNF(dir_plots = dirPlots,
+                  dist_mRNA,
+                  dist_miRNA,
+                  K_range,
+                  alpha_range,
+                  T_range)
+}
 
 ############################## Post-clustering analysis #############################
 

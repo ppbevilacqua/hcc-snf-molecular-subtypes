@@ -101,6 +101,7 @@ fix_clinical_data_types <- function(data) {
 
 
 compute_final_clinical_matrix <- function(common_pz_omics,
+                                          cancer_patient_ids = common_pz_omics,
                                           clinical_legacy_path = clinical_data_matrix_path,
                                           clinical_updated_path = clinical_data_integrated_matrix_path) {
 

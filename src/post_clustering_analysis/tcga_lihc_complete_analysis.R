@@ -136,6 +136,8 @@ run_tcga_lihc_snf_analysis <- function(mRNA_matrix_cancer,
       logfc_threshold = 0.5,    # Lower threshold for miRNAs
       filter_degs = TRUE,
       output_dir = file.path(mirna_output_dir, "DEM_analysis"),
+      feature_label = "DEMs",
+      entity_label = "miRNA",
       verbose = TRUE
     ),
     verbose = TRUE

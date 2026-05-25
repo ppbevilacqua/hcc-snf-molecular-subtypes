@@ -1176,6 +1176,7 @@ create_cluster_profiles <- function(survival_data) {
 assess_cluster_stability <- function(survival_data, n_splits = 10) {
 
   # Create folds
+  set.seed(SEED)
   folds <- createFolds(survival_data$snf_cluster, k = n_splits)
 
   concordance_values <- numeric(n_splits)

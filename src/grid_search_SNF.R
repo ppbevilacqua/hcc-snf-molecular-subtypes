@@ -36,6 +36,7 @@ grid_search_SNF <- function(dir_plots,
     length(T_range) *
     4 # number of tested clusters
 
+  set.seed(SEED)
   for (K in K_range) {
     for (alpha in alpha_range) {
       for (T_iter in T_range) {
@@ -231,6 +232,7 @@ grid_search_SNF <- function(dir_plots,
   W_fused_final <- SNF(list(W_mRNA_final, W_miRNA_final),
                        K = best_params$K, t = best_params$T)
 
+  set.seed(SEED)
   final_clusters <- spectralClustering(W_fused_final, best_params$n_clusters)
 
   cat("\n\nFinal clustering results:")

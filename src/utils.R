@@ -58,7 +58,10 @@ suppressPackageStartupMessages({
 
 # Set theme for plots
 theme_set(theme_bw())
-set.seed(123)
+
+# NOTE: a global set.seed() used to live here. Seeding is now applied
+# locally before each stochastic block (spectral clustering loops, grid
+# search, cross-validation) using the SEED constant from constants.R.
 
 
 # Filter to get only cancer samples

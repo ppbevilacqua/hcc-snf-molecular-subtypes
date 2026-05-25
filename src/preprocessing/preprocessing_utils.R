@@ -33,6 +33,21 @@ intersect_pz_mRNA_miRNA <- function(mRNA_seq_matrix,
   mRNA_matrix <- mRNA_matrix[, order(colnames(mRNA_matrix)), drop = FALSE]
   miRNA_matrix <- miRNA_matrix[, order(colnames(miRNA_matrix)), drop = FALSE]
 
+  # Fail-fast on duplicate patient IDs: downstream SNF and clinical merge
+  # silently misbehave on duplicated colnames.
+  if (anyDuplicated(colnames(mRNA_matrix))) {
+    dup <- unique(colnames(mRNA_matrix)[duplicated(colnames(mRNA_matrix))])
+    stop("Duplicate patient IDs in mRNA after intersection: ",
+         paste(dup, collapse = ", "),
+         ". Check upstream deduplication in deg_pipeline.R.")
+  }
+  if (anyDuplicated(colnames(miRNA_matrix))) {
+    dup <- unique(colnames(miRNA_matrix)[duplicated(colnames(miRNA_matrix))])
+    stop("Duplicate patient IDs in miRNA after intersection: ",
+         paste(dup, collapse = ", "),
+         ". Check upstream deduplication in dem_pipeline.R.")
+  }
+
   return(list(
     mRNA_matrix_final = mRNA_matrix,
     miRNA_matrix_final = miRNA_matrix,

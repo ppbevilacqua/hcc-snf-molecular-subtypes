@@ -81,6 +81,7 @@ network_analysis_SNF <- function(mRNA_matrix_cancer,
   # Method 2: Silhouette analysis
   silhouette_scores <- numeric(19)
 
+  set.seed(SEED)
   for (k in 2:20) {
     clusters_temp <- spectralClustering(W_fused, k)
     sil <- silhouette(clusters_temp, dist = 1 - W_fused)
@@ -102,6 +103,7 @@ network_analysis_SNF <- function(mRNA_matrix_cancer,
   dev.off()
 
   # Use the optimal number of clusters
+  set.seed(SEED)
   final_clusters <- spectralClustering(W_fused, optimal_k)
 
   patient_to_cluster <- data.frame(
@@ -239,6 +241,7 @@ network_analysis_SNF <- function(mRNA_matrix_cancer,
   png(paste0(dir_plots, "consensus_clustering.png"), width = 1200, height = 800)
 
   par(mfrow = c(2, 3))
+  set.seed(SEED)
   for (k in 2:7) {
     clusters_k <- spectralClustering(W_fused, k)
     displayClusters(W_fused, clusters_k)

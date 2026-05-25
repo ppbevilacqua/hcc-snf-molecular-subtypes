@@ -19,6 +19,15 @@ PZ_SAMPLE_TCGA_REGEX <- "TCGA-\\w+-\\w+-\\w+"
 NORMAL_PZ_REGEX <- "TCGA-\\w+-\\w+-1\\d"
 CANCER_PZ_REGEX <- "TCGA-\\w+-\\w+-0\\d"
 
+# Set TRUE to re-run the SNF parameter grid search.
+# When FALSE the pipeline uses the hardcoded optimal values in main.R
+# (K=10, sigma=1, T=20, n_clusters=6) which are the output of a previous
+# grid search run (see plots/snf_top_parameters.csv).
+ENABLE_GRID_SEARCH <- FALSE
+
+# Master seed for reproducibility. Re-applied before each stochastic block.
+SEED <- 123
+
 dirPlots <- './plots/'
 
 if (!dir.exists(dirPlots)) {

@@ -13,6 +13,8 @@ perform_cluster_deg_analysis_log2 <- function(expression_matrix_log2,
                                               logfc_threshold = 1,
                                               filter_degs = TRUE,
                                               output_dir = NULL,
+                                              feature_label = "DEGs",
+                                              entity_label = "gene",
                                               verbose = TRUE) {
 
   # Validate inputs
@@ -129,7 +131,7 @@ perform_cluster_deg_analysis_log2 <- function(expression_matrix_log2,
       n_down <- sum(deg_table_filtered$direction == "DOWN")
 
       if (verbose) {
-        cat("DEGs found (filtered):", nrow(deg_table_filtered), "\n")
+        cat(feature_label, "found (filtered):", nrow(deg_table_filtered), "\n")
         cat("  - Upregulated:", n_up, "\n")
         cat("  - Downregulated:", n_down, "\n")
       }
@@ -158,9 +160,9 @@ perform_cluster_deg_analysis_log2 <- function(expression_matrix_log2,
                       abs(deg_table$logFC) > logfc_threshold)
 
       if (verbose) {
-        cat("Total genes analyzed:", nrow(deg_table), "\n")
-        cat("Significant DEGs (at thresholds):",
-            sum(deg_table$adj.P.Val < adj_pval_threshold & abs(deg_table$logFC) > logfc_threshold), "\n")
+        cat("Total ", entity_label, "s analyzed: ", nrow(deg_table), "\n", sep = "")
+        cat("Significant ", feature_label, " (at thresholds): ",
+            sum(deg_table$adj.P.Val < adj_pval_threshold & abs(deg_table$logFC) > logfc_threshold), "\n", sep = "")
       }
 
       deg_results[[paste0("cluster_", cluster_id)]] <- list(
@@ -189,13 +191,13 @@ perform_cluster_deg_analysis_log2 <- function(expression_matrix_log2,
       # Save filtered results (if filtering was applied)
       if (filter_degs) {
         write.csv(deg_table_filtered,
-                  file = file.path(output_dir, paste0("DEGs_cluster_", cluster_id, "_filtered.csv")),
+                  file = file.path(output_dir, paste0(feature_label, "_cluster_", cluster_id, "_filtered.csv")),
                   row.names = FALSE)
       }
 
       # Save unfiltered results
       write.csv(deg_table,
-                file = file.path(output_dir, paste0("DEGs_cluster_", cluster_id, "_all.csv")),
+                file = file.path(output_dir, paste0(feature_label, "_cluster_", cluster_id, "_all.csv")),
                 row.names = FALSE)
     }
   }
@@ -211,7 +213,7 @@ perform_cluster_deg_analysis_log2 <- function(expression_matrix_log2,
 
     if (!is.null(output_dir)) {
       write.csv(summary_table,
-                file = file.path(output_dir, "DEG_analysis_summary.csv"),
+                file = file.path(output_dir, paste0(feature_label, "_analysis_summary.csv")),
                 row.names = FALSE)
     }
   }
@@ -267,9 +269,12 @@ run_additional_cluster_analysis_log2 <- function(expression_matrix_log2,
   # Check for patient ID matching
   common_patients <- intersect(names(cluster_assignments), colnames(expression_matrix_log2))
 
+  # Resolve entity label early (used in summary verbose); deg_params overrides default.
+  entity_label_local <- if (!is.null(deg_params$entity_label)) deg_params$entity_label else "gene"
+
   if (verbose) {
     cat("Data Summary:\n")
-    cat("- Genes in expression matrix:", nrow(expression_matrix_log2), "\n")
+    cat("- ", entity_label_local, "s in expression matrix: ", nrow(expression_matrix_log2), "\n", sep = "")
     cat("- Total patients in expression matrix:", ncol(expression_matrix_log2), "\n")
     cat("- Total patients in clinical data:", nrow(clinical_data), "\n")
     cat("- Matched patients:", length(common_patients), "\n")
@@ -310,6 +315,8 @@ run_additional_cluster_analysis_log2 <- function(expression_matrix_log2,
       logfc_threshold = 1,
       filter_degs = TRUE,
       output_dir = file.path(output_dir, "DEG_analysis"),
+      feature_label = "DEGs",
+      entity_label = "gene",
       verbose = verbose
     )
 
@@ -331,16 +338,24 @@ run_additional_cluster_analysis_log2 <- function(expression_matrix_log2,
       # Get filtered DEGs for this cluster
       filtered_degs <- deg_results[[cluster_name]]$filtered
 
-      if (nrow(filtered_degs) > 0) {
-        # Sort by adjusted p-value and select top 10
-        top_10 <- filtered_degs %>%
-          arrange(adj.P.Val) %>%
+      if (!is.null(filtered_degs) && nrow(filtered_degs) > 0) {
+        # Top 10 UP per cluster, ranked by adj.P.Val then |logFC|
+        top_up <- filtered_degs %>%
+          filter(direction == "UP") %>%
+          arrange(adj.P.Val, desc(abs(logFC))) %>%
           head(10) %>%
-          mutate(cluster = cluster_name, rank = 1:n()) %>%
+          mutate(cluster = cluster_name, rank = seq_len(n())) %>%
           select(cluster, rank, gene, logFC, adj.P.Val, direction, AveExpr)
 
-        top_10_degs_per_cluster[[cluster_name]] <- top_10
+        # Top 10 DOWN per cluster, same ranking
+        top_down <- filtered_degs %>%
+          filter(direction == "DOWN") %>%
+          arrange(adj.P.Val, desc(abs(logFC))) %>%
+          head(10) %>%
+          mutate(cluster = cluster_name, rank = seq_len(n())) %>%
+          select(cluster, rank, gene, logFC, adj.P.Val, direction, AveExpr)
 
+        top_10_degs_per_cluster[[cluster_name]] <- bind_rows(top_up, top_down)
       }
     }
 
@@ -356,18 +371,20 @@ run_additional_cluster_analysis_log2 <- function(expression_matrix_log2,
         deg_results = deg_results,
         output_dir = deg_params$output_dir,
         adj_pval_threshold = deg_params$adj_pval_threshold,
-        logfc_threshold = deg_params$logfc_threshold
+        logfc_threshold = deg_params$logfc_threshold,
+        feature_label = deg_params$feature_label
       )
 
-      # Create heatmap of top DEGs
-      if (verbose) cat("Creating DEG heatmap...\n")
+      # Create heatmap of top features
+      if (verbose) cat("Creating ", deg_params$feature_label, " heatmap...\n", sep = "")
 
       plot_deg_heatmap(
         expression_matrix = expression_matrix_log2,
         deg_results = deg_results,
         cluster_assignments = cluster_assignments,
         top_n_genes = 50,
-        output_file = file.path(deg_params$output_dir, "top_DEGs_heatmap.pdf")
+        output_file = file.path(deg_params$output_dir, paste0("top_", deg_params$feature_label, "_heatmap.pdf")),
+        feature_label = deg_params$feature_label
       )
     }
 

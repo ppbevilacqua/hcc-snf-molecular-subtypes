@@ -2,7 +2,8 @@ plot_deg_volcano <- function(deg_results,
                              output_dir,
                              adj_pval_threshold = 0.01,
                              logfc_threshold = 1,
-                             top_genes = 10) {
+                             top_genes = 10,
+                             feature_label = "DEGs") {
 
   # Create output directory if needed
   if (!dir.exists(output_dir)) {
@@ -54,7 +55,7 @@ plot_deg_volcano <- function(deg_results,
         subtitle = paste("Adj. p-value <", adj_pval_threshold, "& |logFC| >", logfc_threshold),
         x = "Log2 Fold Change",
         y = "-Log10 Adjusted P-value",
-        color = "DEG Status"
+        color = paste(sub("s$", "", feature_label), "Status")
       ) +
       theme_minimal() +
       theme(
@@ -88,7 +89,8 @@ plot_deg_heatmap <- function(expression_matrix,
                              deg_results,
                              cluster_assignments,
                              output_file,
-                             top_n_genes = 50) {
+                             top_n_genes = 50,
+                             feature_label = "DEGs") {
 
   # Collect top DEGs from each cluster
   top_degs <- c()
@@ -107,7 +109,7 @@ plot_deg_heatmap <- function(expression_matrix,
   }
 
   if (length(top_degs) == 0) {
-    warning("No significant DEGs found for heatmap")
+    warning(paste("No significant", feature_label, "found for heatmap"))
     return(NULL)
   }
 
@@ -145,7 +147,7 @@ plot_deg_heatmap <- function(expression_matrix,
     annotation_colors = annotation_colors,
     show_rownames = FALSE,
     show_colnames = FALSE,
-    main = paste("Top", top_n_genes, "DEGs per Cluster"),
+    main = paste("Top", top_n_genes, feature_label, "per Cluster"),
     border_color = NA,
     color = colorRampPalette(c("blue", "white", "red"))(100)
   )
